@@ -1,25 +1,32 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatCardModule } from '@angular/material/card';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute } from '@angular/router';
 import { ApiService } from '../services/api.service';
 
 @Component({
   standalone: true,
   selector: 'app-status',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatCardModule, MatSelectModule, MatButtonModule],
   template: `
     <div class="p-4 max-w-md">
-      <h2 class="text-lg font-semibold mb-3">Update Status</h2>
-      <div class="mb-2">Change ID: {{ id }}</div>
-      <select class="border p-2" [(ngModel)]="status">
-        <option value="PENDING">PENDING</option>
-        <option value="IN_PROGRESS">IN_PROGRESS</option>
-        <option value="SUCCESS">SUCCESS</option>
-        <option value="ROLLBACK_PARTIAL">ROLLBACK_PARTIAL</option>
-        <option value="ROLLBACK_ALL">ROLLBACK_ALL</option>
-      </select>
-      <button class="border px-3 py-1 ml-2" (click)="save()">Save</button>
+      <mat-card>
+        <mat-card-title>Update Status</mat-card-title>
+        <mat-card-content>
+          <div class="mb-2">Change ID: {{ id }}</div>
+          <mat-select [(ngModel)]="status" placeholder="Status">
+            <mat-option value="PENDING">PENDING</mat-option>
+            <mat-option value="IN_PROGRESS">IN_PROGRESS</mat-option>
+            <mat-option value="SUCCESS">SUCCESS</mat-option>
+            <mat-option value="ROLLBACK_PARTIAL">ROLLBACK_PARTIAL</mat-option>
+            <mat-option value="ROLLBACK_ALL">ROLLBACK_ALL</mat-option>
+          </mat-select>
+          <button mat-raised-button color="primary" class="ml-2" (click)="save()">Save</button>
+        </mat-card-content>
+      </mat-card>
     </div>
   `
 })

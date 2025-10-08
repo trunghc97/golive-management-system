@@ -1,16 +1,20 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, MatToolbarModule, MatButtonModule],
   template: `
-    <nav class="p-3 border-b flex gap-3">
-      <a routerLink="/timeline">Timeline</a>
-      <a routerLink="/register">Register</a>
-    </nav>
+    <mat-toolbar color="primary">
+      <span class="font-bold">Golive Management</span>
+      <span class="flex-1"></span>
+      <a mat-button routerLink="/timeline">Timeline</a>
+      <a mat-button routerLink="/register">Register</a>
+    </mat-toolbar>
     <router-outlet></router-outlet>
   `,
 })

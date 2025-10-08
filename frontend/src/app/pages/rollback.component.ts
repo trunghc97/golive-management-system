@@ -2,27 +2,33 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
 import { ApiService } from '../services/api.service';
 
 @Component({
   standalone: true,
   selector: 'app-rollback',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatCardModule, MatButtonModule],
   template: `
     <div class="p-4 max-w-xl">
-      <h2 class="text-lg font-semibold mb-3">Rollback Components</h2>
-      <div class="mb-2">Change ID: {{ id }}</div>
-      <div class="flex flex-col gap-1 max-h-48 overflow-auto border p-2">
-        <label *ngFor="let c of components">
-          <input type="checkbox" [value]="c.componentId" (change)="toggle(c.componentId, $event)" />
-          {{ c.code }} - {{ c.name }}
-        </label>
-      </div>
-      <div class="mt-2 flex gap-2">
-        <input class="border p-2 flex-1" placeholder="Actor" [(ngModel)]="actor"/>
-        <button class="border px-3 py-1" (click)="doPartial()">Rollback Partial</button>
-        <button class="border px-3 py-1" (click)="doFull()">Rollback All</button>
-      </div>
+      <mat-card>
+        <mat-card-title>Rollback Components</mat-card-title>
+        <mat-card-content>
+          <div class="mb-2">Change ID: {{ id }}</div>
+          <div class="flex flex-col gap-1 max-h-48 overflow-auto border p-2">
+            <label *ngFor="let c of components">
+              <input type="checkbox" [value]="c.componentId" (change)="toggle(c.componentId, $event)" />
+              {{ c.code }} - {{ c.name }}
+            </label>
+          </div>
+          <div class="mt-2 flex gap-2">
+            <input class="border p-2 flex-1" placeholder="Actor" [(ngModel)]="actor"/>
+            <button mat-raised-button color="warn" (click)="doPartial()">Rollback Partial</button>
+            <button mat-raised-button color="accent" (click)="doFull()">Rollback All</button>
+          </div>
+        </mat-card-content>
+      </mat-card>
     </div>
   `
 })
