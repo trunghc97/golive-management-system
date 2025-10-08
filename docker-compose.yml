@@ -1,0 +1,45 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:15
+    container_name: golive_db
+    environment:
+      POSTGRES_DB: golive
+      POSTGRES_USER: golive_user
+      POSTGRES_PASSWORD: golive_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d
+
+  backend:
+    build: ./backend
+    container_name: golive_api
+    depends_on:
+      - postgres
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/golive
+      SPRING_DATASOURCE_USERNAME: golive_user
+      SPRING_DATASOURCE_PASSWORD: golive_pass
+    ports:
+      - "8080:8080"
+    volumes:
+      - maven_cache:/root/.m2
+
+  frontend:
+    build: ./frontend
+    container_name: golive_ui
+    depends_on:
+      - backend
+    ports:
+      - "4200:4200"
+    volumes:
+      - npm_cache:/root/.npm
+
+volumes:
+  pg_data:
+  maven_cache:
+  npm_cache:
+
+
