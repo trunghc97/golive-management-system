@@ -29,42 +29,75 @@ public class QueryController {
     }
 
     @GetMapping("/api/timeline")
-    public ResponseEntity<List<TimelineRow>> timeline(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+    public ResponseEntity<TimelineResponse> timeline(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         var range = DateUtils.getLogicalDayRange(date);
         var start = range[0];
         var end = range[1];
 
-        // load all components and build rows
-        Map<Long, TimelineRow> rows = new LinkedHashMap<>();
+        Map<String, TimelineComponentDTO> dtoByCode = new LinkedHashMap<>();
         List<ComponentMaster> components = componentRepo.findAll();
         for (ComponentMaster c : components) {
-            rows.put(c.getId(), new TimelineRow(c.getCode(), new ArrayList<>()));
+            dtoByCode.put(c.getCode(), new TimelineComponentDTO(c.getCode(), false, new ArrayList<>()));
         }
 
-        // naive approach: fetch all changes in approximate window (simple since we lack spec repo method)
         var changes = changeRepo.findAll().stream()
                 .filter(c -> !(c.getEndTime().isBefore(start) || c.getStartTime().isAfter(end)))
                 .toList();
 
         for (var ch : changes) {
-            var tlChange = new TimelineChange(
+            var changeDto = new ChangeSummaryDTO(
                     ch.getChangeId(),
                     ch.getTeamName(),
                     ch.getRegisteredBy(),
                     ch.getStartTime(),
                     ch.getEndTime(),
-                    ch.getStatus().name(),
-                    Boolean.TRUE.equals(ch.getConflictFlag())
+                    ch.getStatus().name()
             );
+            boolean conflict = Boolean.TRUE.equals(ch.getConflictFlag());
             for (var gc : ch.getComponents()) {
-                var row = rows.get(gc.getComponent().getId());
+                var compCode = gc.getComponent().getCode();
+                var row = dtoByCode.get(compCode);
                 if (row != null) {
-                    row.changes().add(tlChange);
+                    row.changes().add(changeDto);
+                    if (conflict || Boolean.TRUE.equals(gc.getConflictFlag())) {
+                        // replace with a new record with hasConflict=true because Java records are immutable
+                        dtoByCode.put(compCode, new TimelineComponentDTO(row.componentName(), true, row.changes()));
+                    }
                 }
             }
         }
 
-        return ResponseEntity.ok(new ArrayList<>(rows.values()));
+        var response = new TimelineResponse(date.toString(), new ArrayList<>(dtoByCode.values()));
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/api/components/summary")
+    public ResponseEntity<List<Map<String, Object>>> componentSummary(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
+    ) {
+        var changes = changeRepo.findAllByGoliveDateBetween(from, to);
+        Map<String, List<Map<String, Object>>> grouped = new LinkedHashMap<>();
+        for (var ch : changes) {
+            for (var gc : ch.getComponents()) {
+                var comp = gc.getComponent().getCode();
+                grouped.computeIfAbsent(comp, k -> new ArrayList<>()).add(Map.of(
+                        "changeId", ch.getChangeId(),
+                        "date", ch.getGoliveDate().toString(),
+                        "status", ch.getStatus().name()
+                ));
+            }
+        }
+        List<Map<String, Object>> response = new ArrayList<>();
+        for (var entry : grouped.entrySet()) {
+            var list = entry.getValue();
+            list.sort(Comparator.comparing(m -> (String) m.get("date"))); // asc
+            response.add(Map.of(
+                    "component", entry.getKey(),
+                    "timeline", list
+            ));
+        }
+        return ResponseEntity.ok(response);
     }
 }
 

@@ -5,6 +5,8 @@ import com.golive.dto.ChangeDtos.*;
 import com.golive.mapper.ChangeMapper;
 import com.golive.repository.*;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -73,6 +75,21 @@ public class GoliveService {
         }
 
         return changeMapper.toResponse(saved);
+    }
+
+    @Transactional
+    public Page<ChangeResponse> searchChanges(String search, String status, Pageable pageable) {
+        com.golive.domain.Status statusEnum = null;
+        if (status != null && !status.isBlank()) {
+            try { statusEnum = com.golive.domain.Status.valueOf(status); } catch (IllegalArgumentException ignored) {}
+        }
+        if (search == null || search.isBlank()) {
+            var page = changeRepository.findAllByStatusOrderByStartTimeDesc(statusEnum, pageable);
+            return page.map(changeMapper::toResponse);
+        }
+        String searchPattern = "%" + search.toLowerCase() + "%";
+        var page = changeRepository.searchChanges(searchPattern, statusEnum == null ? null : statusEnum.name(), pageable);
+        return page.map(changeMapper::toResponse);
     }
 
     @Transactional
