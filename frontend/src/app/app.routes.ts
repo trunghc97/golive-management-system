@@ -1,16 +1,18 @@
 import { Routes } from '@angular/router';
 import { ChangesListComponent } from './components/changes-list/changes-list.component';
-import { TimelineDayComponent } from './components/timeline-day/timeline-day.component';
+// Removed old TimelineDayComponent import; using TimelineDayNewComponent instead
 import { ComponentHistoryComponent } from './components/component-history/component-history.component';
+import { TimelineDayNewComponent } from './components/timeline-day/timeline-day.component';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'dashboard/changes' },
   // Dashboard 3 tabs
   { path: 'dashboard/changes', component: ChangesListComponent },
-  { path: 'dashboard/timeline', component: TimelineDayComponent },
+  { path: 'dashboard/timeline', component: TimelineDayNewComponent },
   { path: 'dashboard/components', component: ComponentHistoryComponent },
   // Existing pages
   { path: 'timeline', loadComponent: () => import('./pages/timeline.component').then(m => m.TimelineComponent) },
+  { path: 'timeline-day', component: TimelineDayNewComponent },
   { path: 'register', loadComponent: () => import('./pages/register.component').then(m => m.RegisterComponent) },
   { path: 'rollback/:id', loadComponent: () => import('./pages/rollback.component').then(m => m.RollbackComponent) },
   { path: 'history/:changeId', loadComponent: () => import('./pages/history.component').then(m => m.HistoryComponent) },
