@@ -1,72 +1,104 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
-import { MatTabsModule } from '@angular/material/tabs';
 import { MatIconModule } from '@angular/material/icon';
-import { Router } from '@angular/router';
-import { filter } from 'rxjs/operators';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatListModule } from '@angular/material/list';
 
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [CommonModule, RouterModule, MatToolbarModule, MatButtonModule, MatTabsModule, MatIconModule],
-  template: `
-    <div class="min-h-screen bg-gray-50">
-      <mat-toolbar color="primary" class="sticky top-0 z-10">
-        <mat-icon>timeline</mat-icon>
-        <span class="font-bold ml-2">Golive Management</span>
-        <span class="flex-1"></span>
-        <button mat-button (click)="goRegister()"><mat-icon>add_circle</mat-icon> Đăng ký</button>
-      </mat-toolbar>
+    selector: 'app-root',
+    standalone: true,
+    imports: [
+        RouterOutlet,
+        RouterLink,
+        RouterLinkActive,
+        MatToolbarModule,
+        MatButtonModule,
+        MatIconModule,
+        MatSidenavModule,
+        MatListModule
+    ],
+    template: `
+    <mat-toolbar color="primary" class="app-toolbar">
+      <button mat-icon-button (click)="drawer.toggle()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <span class="app-title">Go-Live Management System</span>
+    </mat-toolbar>
 
-      <div class="container mx-auto px-4 py-4">
-        <mat-tab-group class="shadow-sm rounded bg-white" mat-stretch-tabs [selectedIndex]="tabIndex" (selectedIndexChange)="onTabChange($event)">
-          <mat-tab>
-            <ng-template mat-tab-label>
-              <mat-icon class="mr-1">list</mat-icon> Changes
-            </ng-template>
-          </mat-tab>
-          <mat-tab>
-            <ng-template mat-tab-label>
-              <mat-icon class="mr-1">schedule</mat-icon> Timeline
-            </ng-template>
-          </mat-tab>
-          <mat-tab>
-            <ng-template mat-tab-label>
-              <mat-icon class="mr-1">view_list</mat-icon> Components
-            </ng-template>
-          </mat-tab>
-        </mat-tab-group>
+    <mat-sidenav-container class="app-container">
+      <mat-sidenav #drawer mode="side" opened class="app-sidenav">
+        <mat-nav-list>
+          <a mat-list-item routerLink="/dashboard" routerLinkActive="active">
+            <mat-icon matListItemIcon>dashboard</mat-icon>
+            <span matListItemTitle>Dashboard</span>
+          </a>
+          <a mat-list-item routerLink="/changes" routerLinkActive="active">
+            <mat-icon matListItemIcon>change_circle</mat-icon>
+            <span matListItemTitle>Change Requests</span>
+          </a>
+          <a mat-list-item routerLink="/services" routerLinkActive="active">
+            <mat-icon matListItemIcon>apps</mat-icon>
+            <span matListItemTitle>Service Catalog</span>
+          </a>
+          <a mat-list-item routerLink="/impact-analysis" routerLinkActive="active">
+            <mat-icon matListItemIcon>account_tree</mat-icon>
+            <span matListItemTitle>Impact Analysis</span>
+          </a>
+        </mat-nav-list>
+      </mat-sidenav>
 
-        <div class="mt-4">
-          <router-outlet></router-outlet>
-        </div>
-      </div>
-    </div>
+      <mat-sidenav-content class="app-content">
+        <router-outlet></router-outlet>
+      </mat-sidenav-content>
+    </mat-sidenav-container>
   `,
+    styles: [`
+    .app-toolbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .app-title {
+      font-size: 1.25rem;
+      font-weight: 500;
+      margin-left: 1rem;
+    }
+
+    .app-container {
+      position: fixed;
+      top: 64px;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+
+    .app-sidenav {
+      width: 250px;
+      border-right: 1px solid rgba(0,0,0,0.12);
+    }
+
+    .app-content {
+      padding: 2rem;
+      background: #f5f5f5;
+      overflow: auto;
+    }
+
+    mat-nav-list a.active {
+      background: rgba(63, 81, 181, 0.1);
+      color: #3f51b5;
+    }
+
+    mat-nav-list a:hover {
+      background: rgba(0,0,0,0.04);
+    }
+  `]
 })
 export class AppComponent {
-  constructor(private router: Router) {
-    const setIndex = (url: string) => {
-      const found = this.tabRoutes.findIndex(r => url.startsWith(r));
-      this.tabIndex = found >= 0 ? found : this.tabIndex;
-    };
-    setIndex(window.location.pathname);
-    this.router.events.pipe(filter((e: any) => e?.constructor?.name === 'NavigationEnd')).subscribe((e: any) => setIndex(e.urlAfterRedirects || e.url));
-  }
-  tabRoutes = ['/dashboard/changes', '/dashboard/timeline', '/dashboard/components'];
-  tabIndex = 0;
-
-  onTabChange(idx: number) {
-    const route = this.tabRoutes[idx] || this.tabRoutes[1];
-    this.router.navigateByUrl(route);
-  }
-
-  goRegister() {
-    this.router.navigateByUrl('/register');
-  }
+    title = 'Go-Live Management System';
 }
-
-

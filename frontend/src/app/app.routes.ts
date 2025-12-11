@@ -1,23 +1,25 @@
 import { Routes } from '@angular/router';
-import { ChangesListComponent } from './components/changes-list/changes-list.component';
-// Removed old TimelineDayComponent import; using TimelineDayNewComponent instead
-import { ComponentHistoryComponent } from './components/component-history/component-history.component';
-import { TimelineDayNewComponent } from './components/timeline-day/timeline-day.component';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'dashboard/changes' },
-  // Dashboard 3 tabs
-  { path: 'dashboard/changes', component: ChangesListComponent },
-  { path: 'dashboard/timeline', component: TimelineDayNewComponent },
-  { path: 'dashboard/components', component: ComponentHistoryComponent },
-  // Existing pages
-  { path: 'timeline', loadComponent: () => import('./pages/timeline.component').then(m => m.TimelineComponent) },
-  { path: 'timeline-day', component: TimelineDayNewComponent },
-  { path: 'register', loadComponent: () => import('./pages/register.component').then(m => m.RegisterComponent) },
-  { path: 'rollback/:id', loadComponent: () => import('./pages/rollback.component').then(m => m.RollbackComponent) },
-  { path: 'history/:changeId', loadComponent: () => import('./pages/history.component').then(m => m.HistoryComponent) },
-  { path: 'status/:id', loadComponent: () => import('./pages/status.component').then(m => m.StatusComponent) },
-  { path: '**', redirectTo: 'dashboard/changes' },
+    {
+        path: '',
+        redirectTo: '/dashboard',
+        pathMatch: 'full'
+    },
+    {
+        path: 'dashboard',
+        loadComponent: () => import('./components/dashboard/dashboard.component').then(m => m.DashboardComponent)
+    },
+    {
+        path: 'changes',
+        loadComponent: () => import('./components/change-list/change-list.component').then(m => m.ChangeListComponent)
+    },
+    {
+        path: 'services',
+        loadComponent: () => import('./components/service-catalog/service-catalog.component').then(m => m.ServiceCatalogComponent)
+    },
+    {
+        path: 'impact-analysis',
+        loadComponent: () => import('./components/impact-analysis/impact-analysis.component').then(m => m.ImpactAnalysisComponent)
+    }
 ];
-
-

@@ -1,44 +1,87 @@
+version: '3.8'
+
 services:
+  # PostgreSQL Database
   postgres:
-    image: postgres:15
-    container_name: golive_db
+    image: postgres:15-alpine
+    container_name: golive-postgres
     environment:
       POSTGRES_DB: golive
-      POSTGRES_USER: golive_user
-      POSTGRES_PASSWORD: golive_pass
+      POSTGRES_USER: golive
+      POSTGRES_PASSWORD: golive
     ports:
       - "5432:5432"
     volumes:
-      - pg_data:/var/lib/postgresql/data
-      # - ./db/init:/docker-entrypoint-initdb.d
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - golive-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U golive"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  backend:
-    build: ./backend
-    container_name: golive_api
+  # pgAdmin - Database Management UI
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: golive-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@golive.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - golive-network
     depends_on:
       - postgres
+
+  # Spring Boot Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: golive-backend
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/golive
-      SPRING_DATASOURCE_USERNAME: golive_user
-      SPRING_DATASOURCE_PASSWORD: golive_pass
+      SPRING_PROFILES_ACTIVE: docker
     ports:
       - "8080:8080"
-    volumes:
-      - maven_cache:/root/.m2
+    networks:
+      - golive-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
+  # Angular Frontend
   frontend:
-    build: ./frontend
-    container_name: golive_ui
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: golive-frontend
+    ports:
+      - "4200:80"
+    networks:
+      - golive-network
     depends_on:
       - backend
-    ports:
-      - "4200:4200"
-    volumes:
-      - npm_cache:/root/.npm
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+networks:
+  golive-network:
+    driver: bridge
 
 volumes:
-  pg_data:
-  maven_cache:
-  npm_cache:
-
-
+  postgres_data:
+  pgadmin_data:
